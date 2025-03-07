@@ -1,4 +1,10 @@
 import Address from "../value-object/address";
+import CustomerCreatedEvent from "../event/customer-created.event";
+import CustomerAddressChangedEvent from "../event/customer-address-changed.event";
+import EventDispatcher from "../../@shared/event/event-dispatcher";
+import EnviaConsoleLog1Handler from "../event/handler/EnviaConsoleLog1Handler";
+import EnviaConsoleLog2Handler from "../event/handler/EnviaConsoleLog2Handler";
+import EnviaConsoleLogHandler from "../event/handler/EnviaConsoleLogHandler";
 
 export default class Customer {
   private _id: string;
@@ -6,11 +12,24 @@ export default class Customer {
   private _address!: Address;
   private _active: boolean = false;
   private _rewardPoints: number = 0;
+  private eventDispatcher: EventDispatcher;
 
   constructor(id: string, name: string) {
     this._id = id;
     this._name = name;
     this.validate();
+    this.eventDispatcher = new EventDispatcher();
+
+    // Registrar os handlers
+    const enviaConsoleLog1Handler = new EnviaConsoleLog1Handler();
+    const enviaConsoleLog2Handler = new EnviaConsoleLog2Handler();
+    const enviaConsoleLogHandler = new EnviaConsoleLogHandler();
+    this.eventDispatcher.register('CustomerCreatedEvent', enviaConsoleLog1Handler);
+    this.eventDispatcher.register('CustomerCreatedEvent', enviaConsoleLog2Handler);
+    this.eventDispatcher.register('CustomerAddressChangedEvent', enviaConsoleLogHandler);
+    
+    const event = new CustomerCreatedEvent({ id: this.id, name: this.name });
+    this.eventDispatcher.notify(event);
   }
 
   get id(): string {
@@ -45,6 +64,17 @@ export default class Customer {
   
   changeAddress(address: Address) {
     this._address = address;
+    const event = new CustomerAddressChangedEvent({
+      id: this._id,
+      name: this._name,
+      address: {
+        street: address.street,
+        number: address.number,
+        zip: address.zip,
+        city: address.city
+      }
+    });
+    this.eventDispatcher.notify(event);
   }
 
   isActive(): boolean {

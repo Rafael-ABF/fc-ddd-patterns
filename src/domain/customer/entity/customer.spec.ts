@@ -1,5 +1,8 @@
 import Address from "../value-object/address";
 import Customer from "./customer";
+import EventDispatcher from '../../@shared/event/event-dispatcher';
+import EnviaConsoleLog1Handler from '../event/handler/EnviaConsoleLog1Handler';
+import EnviaConsoleLog2Handler from '../event/handler/EnviaConsoleLog2Handler';
 
 describe("Customer unit tests", () => {
   it("should throw error when id is empty", () => {
@@ -59,5 +62,24 @@ describe("Customer unit tests", () => {
 
     customer.addRewardPoints(10);
     expect(customer.rewardPoints).toBe(20);
+  });
+
+  it('should log messages when customer is created', () => {
+    const consoleSpy = jest.spyOn(console, 'log');
+    
+    const customer = new Customer('123', 'John Doe');
+
+    expect(consoleSpy).toHaveBeenCalledWith('Esse é o primeiro console.log do evento: CustomerCreated');
+    expect(consoleSpy).toHaveBeenCalledWith('Esse é o segundo console.log do evento: CustomerCreated');
+  });
+
+  it('should log message when customer address is changed', () => {
+    const consoleSpy = jest.spyOn(console, 'log');
+    const address = new Address("New Street", 123, "78000-000", "Cuiabá");
+    const customer = new Customer('cust_change_addres', 'Mr Mover');
+
+    customer.changeAddress(address);
+    
+    expect(consoleSpy).toHaveBeenCalledWith(`Endereço do cliente cust_change_addres, Mr Mover foi alterado para: New Street, 123, 78000-000, Cuiabá`);
   });
 });
